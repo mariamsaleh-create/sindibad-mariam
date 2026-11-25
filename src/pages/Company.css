@@ -1,0 +1,34 @@
+.company-page { background: var(--bg); color: var(--ink); }
+.company-hero { background: linear-gradient(125deg, #0b1a2e, #16406a); color: #fff; padding-block: clamp(48px, 8vw, 95px); }
+.company-hero h1 { margin-block: 6px 10px; font-size: clamp(2.2rem, 5vw, 4.2rem); line-height: 1.12; }
+.company-hero h1 + p { max-width: 56ch; color: #e4e8ee; }
+.company-hero .btn { margin-top: 22px; }
+.company-page .btn-amber { color: var(--navy); }
+.company-eyebrow { font-size: .82rem; font-weight: 750; color: #075e89; }
+.company-hero .company-eyebrow { color: var(--amber); }
+.company-wrap { display: grid; gap: 48px; padding-block: 48px; }
+.company-story, .company-contact { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: 26px; }
+.company-contact { grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); }
+.company-wrap h2 { font-size: clamp(1.35rem, 2.6vw, 2rem); margin-bottom: 10px; }
+.company-wrap p:not(.company-eyebrow) { color: var(--muted); }
+.company-story p + p { margin-top: 12px; }
+.company-story img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius); }
+.company-story figcaption { margin-top: 6px; font-size: .8rem; color: var(--muted); }
+.company-story figcaption a { text-decoration: underline; }
+.company-values { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+.company-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: #eaf5fc; color: #075e89; }
+.company-cta { padding: 28px; border-radius: var(--radius); background: var(--navy); color: #fff; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.company-cta h2 { margin: 0; }
+.company-contact-info ul { margin-block: 14px; display: grid; gap: 8px; }
+.company-contact-info a { color: #075e89; text-decoration: underline; }
+.company-form, .company-form-row { display: grid; gap: 14px; }
+.company-form-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.company-form label { display: grid; gap: 5px; font-size: .9rem; font-weight: 650; }
+.company-form :is(input, select, textarea) { width: 100%; min-width: 0; padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font: inherit; }
+.company-form .btn { justify-self: start; color: #fff; background: #075e89; }
+:root[data-theme="dark"] :is(.company-wrap .company-eyebrow, .company-contact-info a) { color: var(--blue); }
+:root[data-theme="dark"] .company-form .btn { color: var(--navy); background: var(--blue); }
+@media (max-width: 720px) {
+  .company-story, .company-values, .company-contact { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 440px) { .company-form-row { grid-template-columns: minmax(0, 1fr); } }

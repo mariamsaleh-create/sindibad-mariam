@@ -554,7 +554,7 @@ export default function Home() {
               {text("ابدأ رحلتك الآن", "Start Your Journey Now")}
             </Link>
 
-            <Link to="/about" className="btn btn-ghost">
+            <Link to="/contact?topic=trip" className="btn btn-ghost">
               {text(
                 "احكي معنا لنخطّط رحلتك",
                 "Speak to a Jordan Specialist"

@@ -15,7 +15,7 @@ export default function Navbar() {
     },
     {
       id: "tours",
-      to: "/explore",
+      to: "/tours",
       label: isArabic ? "الجولات" : "Tours",
     },
     {
@@ -25,8 +25,8 @@ export default function Navbar() {
     },
     {
       id: "connect",
-      to: "/guides",
-      label: isArabic ? "تواصل معنا" : "Connect",
+      to: "/contact",
+      label: isArabic ? "تواصل معنا" : "Contact Us",
     },
     {
       id: "about",

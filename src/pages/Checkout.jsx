@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useSettings } from "../context/SettingsContext";
 import { trips } from "../data/homeData";
 import { createPayment } from "../services/paymentService";
 import "./Checkout.css";
@@ -41,7 +42,25 @@ const fmtExp = (v) => {
 
 export default function Checkout() {
   const { tripId } = useParams();
-  const trip = trips.find((t) => String(t.id) === tripId) || trips[0];
+  const { isArabic } = useSettings();
+  const trip = trips.find((item) => String(item.id) === tripId);
+
+  if (!trip) {
+    return (
+      <main className="ck-page">
+        <div className="ck-done">
+          <h1>{isArabic ? "الرحلة غير متاحة للدفع" : "Trip unavailable for checkout"}</h1>
+          <p className="ck-muted">{isArabic ? "اختَر رحلة أخرى من قائمة الرحلات." : "Choose another trip from the tour catalog."}</p>
+          <Link to="/tours" className="ck-pay ck-linkbtn">{isArabic ? "تصفّح الرحلات" : "Browse tours"}</Link>
+        </div>
+      </main>
+    );
+  }
+
+  return <CheckoutForm key={trip.id} trip={trip} />;
+}
+
+function CheckoutForm({ trip }) {
 
   const [method, setMethod] = useState("card");
   const [travelers, setTravelers] = useState(2);
@@ -110,13 +129,12 @@ export default function Checkout() {
             {ok ? "✓" : "✕"}
           </div>
           <h1>
-            {ok ? "Your adventure is booked!" : "Payment didn’t go through"}
+            {ok ? "Demo booking completed" : "Payment didn’t go through"}
           </h1>
           {ok ? (
             <>
               <p className="ck-muted">
-                Booking reference <strong>{result.bookingId}</strong>. A
-                confirmation was sent to {f.email || "your email"}.
+                Demo booking reference <strong>{result.bookingId}</strong>. No payment was collected or email sent.
               </p>
               <ul className="ck-lines">
                 <li>
@@ -136,7 +154,7 @@ export default function Checkout() {
                   </span>
                 </li>
                 <li className="total">
-                  <span>Total paid</span>
+                  <span>Simulated total</span>
                   <span>${money(total)} USD</span>
                 </li>
               </ul>
@@ -166,7 +184,7 @@ export default function Checkout() {
         <section className="ck-left">
           <h1>Checkout</h1>
           <p className="ck-sub">
-            You’re one step away from your Jordan adventure.
+            Demo checkout. Use test details only. Prices are provisional and no payment is collected.
           </p>
 
           <div className="ck-summary">

@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useSettings } from "../context/SettingsContext";
 
 const content = {
@@ -116,7 +117,12 @@ export default function Footer() {
           ))}
         </div>
 
-        <div className="copy">{copyright}</div>
+        <div className="copy">
+          <p>{copyright}</p>
+          <Link to="/about">{isArabic ? "عن سندباد" : "About Sindibad"}</Link>
+          {" · "}
+          <Link to="/contact">{isArabic ? "تواصل معنا" : "Contact Us"}</Link>
+        </div>
       </div>
     </footer>
   );

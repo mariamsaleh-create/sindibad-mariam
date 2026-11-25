@@ -1,0 +1,22 @@
+.ad-ops-section { margin-top: 18px; }
+.ad-ops-filters, .ad-ops-actions {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.ad-ops-filters { margin-block: 12px 18px; }
+.ad-ops-filters label { display: grid; gap: 4px; font-size: 0.85rem; }
+.ad-ops-filters label:first-child { flex: 1 1 230px; }
+.ad-ops-section :is(input, select) {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--ad-line);
+  border-radius: 8px;
+  color: var(--ad-text);
+  background: var(--ad-card);
+  font: inherit;
+}
+.ad-ops-guide { flex-wrap: wrap; }
+.ad-ops-guide .grow { min-width: min(200px, 100%); }
+.ad-ops-notice, .ad-ops-section [role="alert"] { margin-top: 12px; }

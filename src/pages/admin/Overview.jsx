@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+import { useAdminStatuses } from "../../data/useAdminStatuses";
 import { useState } from "react";
 import {
   kpis,
@@ -82,9 +84,9 @@ function Chart({ mode }) {
 export default function Overview() {
   const [range, setRange] = useState("Last 30 Days");
   const [mode, setMode] = useState("line");
-  const [pending, setPending] = useState(pendingGuides);
+  const { statuses } = useAdminStatuses("guide-review");
+  const pending = pendingGuides.filter((guide) => !statuses[guide.id] || statuses[guide.id] === "Pending");
   const [page, setPage] = useState(1);
-  const resolve = (id) => setPending((p) => p.filter((g) => g.id !== id));
 
   return (
     <>
@@ -194,7 +196,7 @@ export default function Overview() {
         <div className="ad-card">
           <div className="ad-row">
             <h2>Pending Guide Licensures</h2>
-            <span className="ad-link">View All ({pending.length})</span>
+            <Link className="ad-link" to="/admin/guides">View All ({pending.length})</Link>
           </div>
           <p className="ad-sub">
             Review authentic Jordan Tourist Guide Association credentials.
@@ -217,12 +219,7 @@ export default function Overview() {
                 <span className="ad-pill soft">Badge {g.badge}</span>
                 <div className="ad-muted">{g.info}</div>
               </div>
-              <button className="ad-ghost" onClick={() => resolve(g.id)}>
-                Reject
-              </button>
-              <button className="ad-btn" onClick={() => resolve(g.id)}>
-                Review & Verify
-              </button>
+              <Link className="ad-btn" to="/admin/guides">Review application</Link>
             </div>
           ))}
         </div>
@@ -249,10 +246,10 @@ export default function Overview() {
       <div className="ad-card">
         <div className="ad-row">
           <h2>Recent Booking Dispatches</h2>
-          <span className="ad-link">View All Bookings</span>
+          <Link className="ad-link" to="/admin/bookings">View All Bookings</Link>
         </div>
         <p className="ad-sub">
-          Real-time transactions and active traveler allocations.
+          Sample bookings and traveler allocations.
         </p>
         <div className="ad-table-wrap">
           <table className="ad-table">

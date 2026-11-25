@@ -1,0 +1,24 @@
+.ad-trips-hint { margin-block: 0 14px; }
+.ad-trips-error { color: #b33c26; margin-block: 0 14px; }
+.ad-trips-form { display: grid; gap: 16px; margin-bottom: 18px; }
+.ad-trips-form label, .ad-trips-search { display: grid; gap: 5px; font-size: 0.85rem; }
+.ad-trips-fields, .ad-trips-destinations { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ad-trips-form fieldset { border: 0; min-width: 0; }
+.ad-trips-form legend { margin-bottom: 8px; font-weight: 700; }
+.ad-trips-destinations label { display: flex; align-items: start; }
+.ad-trips-destinations input { margin-top: 4px; accent-color: var(--blue); }
+.ad-trips-form input:not([type="checkbox"]), .ad-trips-form textarea, .ad-trips-search input {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--ad-line, var(--line));
+  border-radius: 8px;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+}
+.ad-trips-toolbar, .ad-trips-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ad-trips-toolbar { justify-content: space-between; margin-bottom: 14px; }
+@media (max-width: 600px) {
+  .ad-trips-fields, .ad-trips-destinations { grid-template-columns: minmax(0, 1fr); }
+}

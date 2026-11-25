@@ -55,20 +55,6 @@ export const categories = [
 
 export const trips = [
   {
-    id: 1,
-    date: "Oct 14 – 21",
-    seats: "4 Seats Left",
-    price: 1450,
-    days: "7 Days",
-    rating: "5.0 (128)",
-    title: "Grand Jordan Odyssey: From Roman Citadel to Red Sea Coast",
-    stops: "Amman → Jerash → Petra → Wadi Rum → Dead Sea",
-    guide: "Yousef Al-Olaimat",
-    role: "Verified Master Guide",
-    category: "Archaeology & Ruins",
-    img: "/images/trip1.jpg",
-  },
-  {
     id: 2,
     date: "Nov 03 – 05",
     seats: "6 Seats Left",
