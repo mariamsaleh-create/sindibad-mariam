@@ -1,8 +1,11 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import TripListings from "../components/TripListings";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSettings } from "../context/SettingsContext";
-import { getHomeData, categoryLabelsAr } from "../data/homeData";
+import { getHomeData } from "../data/homeData";
 import "./Home.css";
+
+const destinationSlugs = { 1: "petra", 2: "wadi-rum", 3: "dead-sea", 4: "jerash", 5: "aqaba" };
 
 const shade = (img) => ({
   backgroundImage: `linear-gradient(to top, rgba(8,16,28,.85), rgba(8,16,28,.1)), url(${img})`,
@@ -24,28 +27,22 @@ export default function Home() {
   const {
     language,
     isArabic,
-    currency,
     formatMoney,
-    ratesLoading,
-    ratesError,
   } = useSettings();
 
-  const [cat, setCat] = useState("All Trips");
   const navigate = useNavigate();
+  const { hash, key } = useLocation();
+
+  useEffect(() => {
+    if (hash === "#local-guides") document.getElementById("local-guides")?.scrollIntoView();
+  }, [hash, key]);
 
   const {
     destinations,
-    categories,
-    trips,
     guides,
     features,
     reviews,
   } = getHomeData(language);
-
-  const shown =
-    cat === "All Trips"
-      ? trips
-      : trips.filter((trip) => trip.category === cat);
 
   const text = (ar, en) => (isArabic ? ar : en);
 
@@ -98,7 +95,7 @@ export default function Home() {
               {text("اكتشف الوجهات", "Explore Destinations")}
             </Link>
 
-            <Link to="/guides" className="btn btn-ghost">
+            <Link to="/#local-guides" className="btn btn-ghost">
               {text("اختر مرشدك", "Find Your Tour Guide")}
             </Link>
           </div>
@@ -107,16 +104,22 @@ export default function Home() {
             className="search"
             onSubmit={(event) => {
               event.preventDefault();
-              navigate("/explore");
+              const fields = new FormData(event.currentTarget);
+              const search = new URLSearchParams();
+              for (const name of ["keyword", "date", "travelers"]) {
+                const value = fields.get(name)?.trim();
+                if (value) search.set(name, value);
+              }
+              navigate({ pathname: "/trips", search: search.toString() });
             }}
           >
             <div>
               <label htmlFor="home-destination">
-                {text("وين حاب تروح؟", "Where to?")}
+                {text("ابحث باسم الرحلة", "Search by trip name")}
               </label>
 
               <input
-                id="home-destination"
+                id="home-destination" name="keyword" type="search"
                 placeholder={text(
                   "البتراء، وادي رم، البحر الميت",
                   "Petra, Wadi Rum, Dead Sea"
@@ -130,11 +133,7 @@ export default function Home() {
               </label>
 
               <input
-                id="home-dates"
-                placeholder={text(
-                  "مثلاً: 12–22 أكتوبر",
-                  "Oct 12 – 22"
-                )}
+                id="home-dates" name="date" type="date"
               />
             </div>
 
@@ -144,7 +143,7 @@ export default function Home() {
               </label>
 
               <input
-                id="home-travelers"
+                id="home-travelers" name="travelers" type="number" min="1"
                 placeholder={text("مثلاً: شخصان", "2 Travelers")}
               />
             </div>
@@ -179,52 +178,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* حالة تحويل العملة ومصدر أسعار الصرف */}
-      {currency !== "USD" && (
-        <div
-          className="container"
-          style={{
-            paddingBlock: "16px",
-            color: "var(--muted)",
-            fontSize: "13px",
-          }}
-        >
-          <p role="status">
-            {ratesLoading
-              ? text(
-                  "جارٍ تحديث أسعار الصرف. أي سعر يظهر برمز USD هو بالدولار.",
-                  "Updating exchange rates. Prices marked USD are in US dollars."
-                )
-              : ratesError
-                ? text(
-                    "تعذّر تحديث أسعار الصرف. تأكد من رمز العملة بجانب كل سعر، أو اختر الدولار.",
-                    "Exchange rates could not be updated. Check each price’s currency code, or select USD."
-                  )
-                : text(
-                    "الأسعار المحوّلة تقديرية وقد تختلف عن المبلغ النهائي عند الدفع.",
-                    "Converted prices are estimates and may differ from the final payment amount."
-                  )}
-          </p>
-
-          <a
-            href="https://www.exchangerate-api.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: "inline-block",
-              marginTop: "4px",
-              color: "var(--blue)",
-              textDecoration: "underline",
-            }}
-          >
-            {text(
-              "أسعار الصرف من ExchangeRate-API",
-              "Rates by ExchangeRate-API"
-            )}
-          </a>
-        </div>
-      )}
-
       {/* الوجهات */}
       <section className="section container">
         <div className="sec-head">
@@ -255,7 +208,7 @@ export default function Home() {
         <div className="dest-grid">
           {destinations.map((destination) => (
             <Link
-              to="/explore"
+              to={`/explore/${destinationSlugs[destination.id]}`}
               key={destination.id}
               className={`dest ${destination.large ? "large" : ""}`}
               style={shade(destination.img)}
@@ -280,110 +233,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* الرحلات */}
-      <section className="section container">
-        <div className="sec-head">
-          <div>
-            <span className="eyebrow">
-              {text(
-                "رحلات بمجموعات صغيرة",
-                "Curated small groups"
-              )}
-            </span>
-
-            <h2>
-              {text(
-                "اختر مغامرتك القادمة",
-                "Handcrafted Expeditions"
-              )}
-            </h2>
-
-            <p>
-              {text(
-                "مع 10 مسافرين كحد أقصى، خذ وقتك في الاستكشاف واستمتع بحكايات كل مكان.",
-                "Intimate journeys strictly limited to 10 travelers, with deep historical pacing."
-              )}
-            </p>
-          </div>
-
-          <div className="chips">
-            {categories.map((category) => (
-              <button
-                type="button"
-                key={category}
-                className={`chip ${category === cat ? "on" : ""}`}
-                onClick={() => setCat(category)}
-                aria-pressed={category === cat}
-              >
-                {isArabic
-                  ? categoryLabelsAr[category] || category
-                  : category}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="cards3">
-          {shown.map((trip) => (
-            <article className="card" key={trip.id}>
-              <div className="trip-img" style={photo(trip.img)}>
-                <span className="date">{trip.date}</span>
-                <span className="seats">{trip.seats}</span>
-
-                <span className="price-tag">
-                  <bdi>{displayPrice(trip.price)}</bdi>{" "}
-                  / {text("للشخص", "person")}
-                </span>
-              </div>
-
-              <div className="card-body">
-                <div className="meta">
-                  {trip.days} • ★ <bdi>{trip.rating}</bdi>
-                </div>
-
-                <h3>{trip.title}</h3>
-                <div className="stops">{trip.stops}</div>
-
-                <div className="guide-mini">
-                  <span className="avatar">
-                    {initials(trip.guide)}
-                  </span>
-
-                  <div>
-                    <strong>{trip.guide}</strong>
-                    <div className="meta">{trip.role}</div>
-                  </div>
-                </div>
-
-                <div className="card-foot">
-                  <Link to="/trips" className="link">
-                    {text("تفاصيل الرحلة", "Full Dossier")}
-                  </Link>
-
-                  <Link
-                    to={`/checkout/${trip.id}`}
-                    className="btn btn-blue"
-                  >
-                    {text("احجز مقعدك", "Reserve Seat")}
-                  </Link>
-                </div>
-              </div>
-            </article>
-          ))}
-
-          {shown.length === 0 && (
-            <p>
-              {text(
-                "ما في رحلات ضمن هذا التصنيف حاليًا. جرّب تصنيفًا آخر.",
-                "No trips in this category yet."
-              )}
-            </p>
-          )}
-        </div>
-      </section>
+      <TripListings />
 
       {/* المرشدون */}
-      <section className="section container">
+      <section id="local-guides" className="section container">
         <div className="sec-head">
           <div>
             <span className="eyebrow">
@@ -404,13 +257,6 @@ export default function Home() {
               )}
             </p>
           </div>
-
-          <Link to="/guides" className="link">
-            {text(
-              "تعرّف على كل المرشدين",
-              "Browse all 42 registered guides"
-            )}
-          </Link>
         </div>
 
         <div className="cards3">
@@ -550,11 +396,11 @@ export default function Home() {
           </p>
 
           <div className="hero-btns">
-            <Link to="/register" className="btn btn-amber">
+            <Link to="/trips" className="btn btn-amber">
               {text("ابدأ رحلتك الآن", "Start Your Journey Now")}
             </Link>
 
-            <Link to="/contact?topic=trip" className="btn btn-ghost">
+            <Link to="/contact" className="btn btn-ghost">
               {text(
                 "احكي معنا لنخطّط رحلتك",
                 "Speak to a Jordan Specialist"

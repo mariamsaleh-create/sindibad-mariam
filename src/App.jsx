@@ -6,6 +6,8 @@ import Footer from "./components/Footer";
 import AdminLayout from "./components/AdminLayout";
 
 import Home from "./pages/Home";
+import Trips from "./pages/Trips";
+import BackendTripDetails from "./pages/BackendTripDetails";
 import { About, Contact } from "./pages/Company";
 import Explore from "./pages/Explore";
 import DestinationDetails from "./pages/DestinationDetails";
@@ -14,7 +16,7 @@ import Login from "./pages/Login";
 import Checkout from "./pages/Checkout";
 import Overview from "./pages/admin/Overview";
 import ManageTrips from "./pages/admin/ManageTrips";
-import { BookingFollowUp, GuideApprovals } from "./pages/admin/AdminOperations";
+import { BookingFollowUp, GuideApprovals, ManageCategories } from "./pages/admin/AdminOperations";
 
 function PublicLayout() {
   return (
@@ -36,6 +38,8 @@ export default function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/explore" element={<Explore />} />
           <Route path="/explore/:destinationId" element={<DestinationDetails />} />
+          <Route path="/trips" element={<Trips />} />
+          <Route path="/trips/:tripId" element={<BackendTripDetails />} />
           <Route path="/tours" element={<Tours />} />
           <Route path="/tours/:tourId" element={<TourDetails />} />
           <Route path="/checkout/:tripId" element={<Checkout />} />
@@ -46,6 +50,7 @@ export default function App() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Overview />} />
           <Route path="trips" element={<ManageTrips />} />
+          <Route path="categories" element={<ManageCategories />} />
           <Route path="guides" element={<GuideApprovals />} />
           <Route path="bookings" element={<BookingFollowUp />} />
           <Route path="*" element={<p>Coming soon</p>} />

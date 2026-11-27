@@ -64,7 +64,7 @@ export default function Tours() {
       <header className="tours-intro">
         <div className="container tours-intro-layout">
           <div>
-            <p className="tours-meta">{text("رحلات الأردن", "Tours in Jordan")}</p>
+            <p className="tours-meta">{text("رحلات تجريبية", "Sample Tours")}</p>
             <h1>{text("اختَر رحلتك في الأردن", "Find your Jordan tour")}</h1>
             <p>{text("قارن المسارات والمدد والأسعار للرحلات في الأردن.", "Compare routes, durations and prices for guided trips across Jordan.")}</p>
           </div>
@@ -86,6 +86,7 @@ export default function Tours() {
       </header>
       <section className="container tours-results" aria-label="Tour results">
         <p className="tours-count">{text("الأسعار المعروضة تجريبية وبانتظار الاعتماد.", "Listed prices are provisional and pending approval.")}</p>
+        <Link className="tours-link" to="/trips">{text("عرض الرحلات الفعلية", "View live trips")}</Link>
         <p className="tours-count" role="status">
           {number(results.length)} {text("رحلة", results.length === 1 ? "tour" : "tours")}
           {selection ? ` · ${destinationText(selection).name}` : ""}

@@ -1,111 +1,149 @@
 import { useState } from "react";
-import { bookings, pendingGuides } from "../../data/adminData";
-import { useAdminStatuses } from "../../data/useAdminStatuses";
+import { useAdminData } from "./useAdminData";
 import "./AdminOperations.css";
 
-const guideStatuses = ["Pending", "Approved", "Rejected"];
-const bookingStatuses = ["New", "In progress", "Confirmed", "Cancelled"];
-const bookingStatusKey = "booking-follow-up";
-
-function Status({ value }) {
-  const tone = ["Approved", "Confirmed", "Paid"].includes(value) ? "paid"
-    : ["Pending", "In progress"].includes(value) ? "pending" : "soft";
-  return <span className={`ad-pill ${tone}`}>{value}</span>;
+function useOperation() {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  async function run(action) {
+    setBusy(true);
+    setError("");
+    try { await action(); }
+    catch (failure) { setError(failure.message); }
+    finally { setBusy(false); }
+  }
+  return { busy, error, run };
 }
 
-function Filters({ query, setQuery, filter, setFilter, options, placeholder }) {
-  return (
-    <div className="ad-ops-filters">
-      <label>Search<input type="search" value={query} placeholder={placeholder} onChange={(event) => setQuery(event.target.value)} /></label>
-      <label>Status
-        <select value={filter} onChange={(event) => setFilter(event.target.value)}>
-          <option value="">All statuses</option>
-          {options.map((status) => <option key={status}>{status}</option>)}
-        </select>
-      </label>
-    </div>
-  );
+function Heading({ title, source }) {
+  return <header className="ad-head"><h1>{title}</h1><button className="ad-ghost" disabled={source.loading} onClick={source.reload}>Refresh</button></header>;
+}
+
+function Feedback({ source, operation, empty }) {
+  return <>
+    {source.loading && <p role="status">Loading…</p>}
+    {source.error && <p role="alert">{source.error}</p>}
+    {operation?.error && <p role="alert">{operation.error}</p>}
+    {!source.loading && !source.error && !source.data?.length && <p>{empty}</p>}
+  </>;
 }
 
 export function GuideApprovals() {
-  const { statuses, update, error } = useAdminStatuses("guide-review");
-  const [filter, setFilter] = useState("");
-  const [query, setQuery] = useState("");
-  const [notice, setNotice] = useState("");
-  const applications = pendingGuides.map((guide) => ({ ...guide, status: statuses[guide.id] ?? "Pending" }));
-  const shown = applications.filter((guide) => (!filter || guide.status === filter)
-    && `${guide.name} ${guide.badge} ${guide.info}`.toLowerCase().includes(query.trim().toLowerCase()));
+  const source = useAdminData("admin/guides/pending");
+  const operation = useOperation();
+  const [guideId, setGuideId] = useState("");
 
   function decide(guide, status) {
-    if (update(guide.id, status)) setNotice(`${guide.name}: ${status}.`);
-    else setNotice("");
+    void operation.run(async () => {
+      await source.request(`admin/guides/${guide.guideId}/approval?status=${status}`, { method: "PUT" });
+      source.reload();
+    });
   }
 
-  return (
-    <>
-      <header className="ad-head"><div><p className="ad-crumb">Operations / Tour Guides</p><h1>Guide Approvals</h1></div></header>
-      <p className="ad-sub">Review sample guide applications. Decisions are saved in this browser.</p>
-      <section className="ad-card ad-ops-section" aria-labelledby="guide-applications">
-        <h2 id="guide-applications">Guide applications</h2>
-        <Filters query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} options={guideStatuses} placeholder="Name, badge or specialty" />
-        {shown.length ? shown.map((guide) => (
-          <article key={guide.id} className="ad-guide ad-ops-guide">
-            <span className="ad-avatar" aria-hidden="true">{guide.name.split(" ").map((part) => part[0]).slice(0, 2).join("")}</span>
-            <div className="grow"><strong>{guide.name}</strong> <span className="ad-pill soft">Badge {guide.badge}</span><p className="ad-muted">{guide.info}</p></div>
-            <Status value={guide.status} />
-            <div className="ad-ops-actions" aria-label={`Actions for ${guide.name}`}>
-              {guide.status === "Pending" ? <>
-                <button className="ad-ghost" type="button" onClick={() => decide(guide, "Rejected")}>Reject</button>
-                <button className="ad-btn" type="button" onClick={() => decide(guide, "Approved")}>Approve</button>
-              </> : <button className="ad-ghost" type="button" onClick={() => decide(guide, "Pending")}>Reopen review</button>}
-            </div>
-          </article>
-        )) : <p className="ad-muted">No guide applications match your filters.</p>}
-        {error && <p role="alert">{error}</p>}
-        {notice && <p className="ad-ops-notice" role="status">{notice}</p>}
-      </section>
-    </>
-  );
+  function suspend(event) {
+    event.preventDefault();
+    if (!window.confirm(`Suspend guide #${guideId}?`)) return;
+    void operation.run(async () => {
+      await source.request(`admin/guides/${guideId}`, { method: "DELETE" });
+      setGuideId("");
+      source.reload();
+    });
+  }
+
+  return <>
+    <Heading title="Guide Approvals" source={source} />
+    <section className="ad-card ad-ops-section">
+      <h2>Pending applications</h2>
+      <Feedback source={source} operation={operation} empty="No pending applications." />
+      {source.data?.map((guide) => <article className="ad-guide ad-ops-guide" key={guide.guideId}>
+        <div className="grow">
+          <strong>{guide.firstName} {guide.lastName} · #{guide.guideId}</strong>
+          <p className="ad-muted">{guide.email} {guide.phoneNumber}</p>
+          {guide.bio && <p>{guide.bio}</p>}
+          <p className="ad-muted">{guide.experienceYears ?? "—"} years of experience · {guide.availableDays ?? "—"} {guide.startTime} {guide.endTime}</p>
+        </div>
+        <div className="ad-ops-actions">
+          <button className="ad-ghost" disabled={operation.busy} onClick={() => decide(guide, "Rejected")}>Reject</button>
+          <button className="ad-btn" disabled={operation.busy} onClick={() => decide(guide, "Approved")}>Approve</button>
+        </div>
+      </article>)}
+    </section>
+    <form className="ad-card ad-ops-section" onSubmit={suspend}>
+      <h2>Suspend guide access</h2>
+      <div className="ad-ops-filters">
+        <label>Guide ID<input required type="number" min="1" value={guideId} onChange={(event) => setGuideId(event.target.value)} /></label>
+        <button className="ad-ghost" disabled={operation.busy}>Suspend guide</button>
+      </div>
+    </form>
+  </>;
 }
 
 export function BookingFollowUp() {
-  const { statuses, update, error } = useAdminStatuses(bookingStatusKey);
+  const source = useAdminData("admin/bookings/guide-direct");
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState("");
-  const [notice, setNotice] = useState("");
-  const records = bookings.map((booking) => ({ ...booking, followUp: statuses[booking.id] ?? "New" }));
-  const shown = records.filter((booking) => (!filter || booking.followUp === filter)
-    && `${booking.id} ${booking.name} ${booking.tour}`.toLowerCase().includes(query.trim().toLowerCase()));
+  const needle = query.trim().toLowerCase();
+  const rows = source.data?.filter((booking) => [booking.bookingId, booking.touristName, booking.guideName, booking.bookingStatus].join(" ").toLowerCase().includes(needle)) ?? [];
 
-  function changeStatus(booking, status) {
-    if (update(booking.id, status)) setNotice(`${booking.id}: ${status}.`);
-    else setNotice("");
+  return <>
+    <Heading title="Direct Guide Bookings" source={source} />
+    <section className="ad-card ad-ops-section">
+      <div className="ad-ops-filters"><label>Search bookings<input type="search" value={query} onChange={(event) => setQuery(event.target.value)} /></label></div>
+      <Feedback source={source} empty="No direct guide bookings." />
+      {!rows.length && !!source.data?.length && <p>No matching bookings.</p>}
+      {!!rows.length && <div className="ad-table-wrap"><table className="ad-table">
+        <thead><tr>{["ID", "Traveler", "Guide", "Date", "Guests", "Total", "Status"].map((label) => <th scope="col" key={label}>{label}</th>)}</tr></thead>
+        <tbody>{rows.map((booking) => <tr key={booking.bookingId}>
+          <td>#{booking.bookingId}</td><td>{booking.touristName}</td><td>{booking.guideName}</td>
+          <td>{booking.bookingDate?.replace("T", " ")}</td><td>{booking.numberOfGuests}</td><td>{booking.totalPrice}</td><td>{booking.bookingStatus}</td>
+        </tr>)}</tbody>
+      </table></div>}
+    </section>
+  </>;
+}
+
+export function ManageCategories() {
+  const source = useAdminData("categories");
+  const operation = useOperation();
+  const [draft, setDraft] = useState(null);
+
+  function save(event) {
+    event.preventDefault();
+    const categoryName = draft.categoryName.trim();
+    if (!categoryName) return;
+    void operation.run(async () => {
+      await source.request(draft.categoryId ? `admin/categories/${draft.categoryId}` : "admin/categories", {
+        method: draft.categoryId ? "PUT" : "POST",
+        body: { categoryName, description: draft.description?.trim() ?? "" },
+      });
+      setDraft(null);
+      source.reload();
+    });
   }
 
-  return (
-    <>
-      <header className="ad-head"><div><p className="ad-crumb">Operations / Bookings</p><h1>Booking Follow-up</h1></div></header>
-      <p className="ad-sub">Track sample bookings. Follow-up changes are saved in this browser.</p>
-      <section className="ad-card ad-ops-section" aria-labelledby="booking-records">
-        <h2 id="booking-records">Booking records</h2>
-        <Filters query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} options={bookingStatuses} placeholder="Booking ID, traveler or tour" />
-        {shown.length ? <div className="ad-table-wrap">
-          <table className="ad-table">
-            <thead><tr>{["Booking", "Traveler", "Tour", "Date & time", "Amount (JOD)", "Payment", "Follow-up"].map((label) => <th scope="col" key={label}>{label}</th>)}</tr></thead>
-            <tbody>{shown.map((booking) => <tr key={booking.id}>
-              <td className="ad-id">{booking.id}</td>
-              <td><strong>{booking.name}</strong><p className="ad-muted">{booking.who}</p></td>
-              <td><strong>{booking.tour}</strong><p className="ad-muted">{booking.sub}</p></td>
-              <td>{booking.date}</td><td>{booking.amount}</td><td><Status value={booking.status} /></td>
-              <td><select aria-label={`Follow-up status for ${booking.id}`} value={booking.followUp} onChange={(event) => changeStatus(booking, event.target.value)}>
-                {bookingStatuses.map((status) => <option key={status}>{status}</option>)}
-              </select></td>
-            </tr>)}</tbody>
-          </table>
-        </div> : <p className="ad-muted">No bookings match your filters.</p>}
-        {error && <p role="alert">{error}</p>}
-        {notice && <p className="ad-ops-notice" role="status">{notice}</p>}
-      </section>
-    </>
-  );
+  return <>
+    <Heading title="Trip Categories" source={source} />
+    <section className="ad-card ad-ops-section">
+      <button className="ad-btn" disabled={operation.busy} onClick={() => setDraft({ categoryName: "", description: "" })}>Add category</button>
+      <Feedback source={source} operation={operation} empty="No categories." />
+      {draft && <form className="ad-ops-filters" onSubmit={save}>
+        <label>Name<input required value={draft.categoryName} onChange={(event) => setDraft({ ...draft, categoryName: event.target.value })} /></label>
+        <label>Description<input value={draft.description ?? ""} onChange={(event) => setDraft({ ...draft, description: event.target.value })} /></label>
+        <button className="ad-btn" disabled={operation.busy}>Save category</button>
+        <button type="button" className="ad-ghost" disabled={operation.busy} onClick={() => setDraft(null)}>Cancel</button>
+      </form>}
+      {source.data?.map((category) => <article key={category.categoryId} className="ad-guide ad-ops-guide">
+        <div className="grow"><strong>{category.categoryName}</strong><p className="ad-muted">{category.description}</p></div>
+        <div className="ad-ops-actions">
+          <button className="ad-ghost" disabled={operation.busy} onClick={() => setDraft(category)}>Edit</button>
+          <button className="ad-ghost" disabled={operation.busy} onClick={() => {
+            if (window.confirm(`Delete "${category.categoryName}"?`)) void operation.run(async () => {
+              await source.request(`admin/categories/${category.categoryId}`, { method: "DELETE" });
+              setDraft((current) => current?.categoryId === category.categoryId ? null : current);
+              source.reload();
+            });
+          }}>Delete</button>
+        </div>
+      </article>)}
+    </section>
+  </>;
 }

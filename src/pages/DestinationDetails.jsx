@@ -97,7 +97,7 @@ function Booking({ destination, profile, selectedTour }) {
           <output>{price(rate * travelers)}</output>
         </div>
         <button className="btn btn-blue" type="submit">{text("احجز مقعدك", "Reserve Your Seat")}</button>
-        <Link className="btn dd-outline" to="/contact?topic=trip">{text("اسأل مختصاً", "Ask a Specialist")}</Link>
+        <Link className="btn dd-outline" to="/contact">{text("اسأل مختصاً", "Ask a Specialist")}</Link>
         <p className="meta" role="status">{notice}</p>
         <ul className="dd-reassurance">
           <li>✓ Confirm cancellation terms with your expedition</li>
@@ -327,7 +327,7 @@ function DestinationView({ destination }) {
         <section className="cta dd-cta">
           <p className="badge">{text("ابدأ رحلتك", "Begin your journey")}</p>
           <h2>{text(`${name} بانتظارك. خلّيها قصّتك.`, `${name} Is Waiting. Make It Your Story.`)}</h2>
-          <div className="hero-btns"><a className="btn btn-amber" href="#plan-trip">{text("ابدأ رحلتك الآن", "Start Your Journey Now")}</a><Link className="btn btn-ghost" to="/contact?topic=trip">{text("تواصل مع مختص بالأردن", "Speak to a Jordan Specialist")}</Link></div>
+          <div className="hero-btns"><a className="btn btn-amber" href="#plan-trip">{text("ابدأ رحلتك الآن", "Start Your Journey Now")}</a><Link className="btn btn-ghost" to="/contact">{text("تواصل مع مختص بالأردن", "Speak to a Jordan Specialist")}</Link></div>
         </section>
       </div>
     </main>

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useSettings } from "../context/SettingsContext";
 import "./Company.css";
 
@@ -57,87 +57,52 @@ export function About() {
   </main>;
 }
 
-const draftKey = "sindibad:contact-draft:v1";
-const topics = ["trip", "booking", "general"];
+const contact = {
+  phone: "+962 7 0000 0000",
+  email: "hello@sindibad.example",
+  isPreview: true,
+};
 
-function loadDraft() {
-  try {
-    const draft = JSON.parse(globalThis.localStorage?.getItem(draftKey) ?? "null");
-    return draft && typeof draft === "object" ? draft : {};
-  } catch {
-    return {};
-  }
-}
 
 export function Contact() {
   const { isArabic } = useSettings();
-  const [params] = useSearchParams();
   const t = (en, ar) => isArabic ? ar : en;
-  const [draft, setDraft] = useState(() => {
-    const saved = loadDraft();
-    const topic = params.get("topic");
-    return {
-      name: typeof saved.name === "string" ? saved.name : "",
-      email: typeof saved.email === "string" ? saved.email : "",
-      message: typeof saved.message === "string" ? saved.message : "",
-      topic: topics.includes(topic) ? topic : topics.includes(saved.topic) ? saved.topic : "general",
-    };
-  });
-  const [status, setStatus] = useState("");
-  const labels = { trip: t("Trip planning", "تخطيط رحلة"), booking: t("Booking question", "استفسار عن حجز"), general: t("General inquiry", "استفسار عام") };
+  const methods = [
+    { icon: "☎", label: t("Phone", "الهاتف"), value: contact.phone, href: `tel:${contact.phone.replaceAll(" ", "")}` },
+    { icon: "✉", label: t("Email", "البريد الإلكتروني"), value: contact.email, href: `mailto:${contact.email}` },
+  ];
 
-  function field(event) {
-    const { name, value } = event.target;
-    setDraft({ ...draft, [name]: value });
-    setStatus("");
-  }
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
-  function save(event) {
-    event.preventDefault();
-    if (!draft.name.trim() || !draft.message.trim()) {
-      setStatus("required");
-      return;
-    }
-    try {
-      globalThis.localStorage.setItem(draftKey, JSON.stringify({ ...draft, name: draft.name.trim(), email: draft.email.trim(), message: draft.message.trim() }));
-      setStatus("saved");
-    } catch {
-      setStatus("error");
-    }
-  }
-
-  return <main className="company-page">
-    <CompanyHero
-      label={t("Contact Sindibad", "تواصل مع سندباد")}
-      title={t("How can we help?", "كيف بنقدر نساعدك؟")}
-      description={t("Tell us what you’re planning or what you’d like to know about an existing booking.", "احكيلنا عن الرحلة اللي بتخطّط إلها، أو عن استفسارك بخصوص حجز.")}
-    />
-    <div className="container company-wrap company-contact">
-      <aside className="card card-body company-contact-info">
-        <p className="company-eyebrow">{t("Before you write", "قبل ما تكتب")}</p>
-        <h2>{t("Find what you need", "لاقِ اللي بتدور عليه")}</h2>
-        <ul>
-          <li><Link to="/explore">{t("Browse destinations", "تصفّح الوجهات")} ↗</Link></li>
-          <li><Link to="/tours">{t("Compare tours", "قارن الرحلات")} ↗</Link></li>
-        </ul>
-        <p>{t("For booking questions, include your booking reference if you have one.", "إذا استفسارك عن حجز، اكتب رقمه إذا كان متوفر عندك.")}</p>
-      </aside>
-      <form className="card card-body company-form" onSubmit={save}>
-        <h2>{t("Write your message", "اكتب رسالتك")}</h2>
-        <p>{t("You can save a draft in this browser. Message delivery is not connected yet.", "بتقدر تحفظ مسودة على هالمتصفح. إرسال الرسائل لسه مش مربوط.")}</p>
-        <div className="company-form-row">
-          <label>{t("Name", "الاسم")}<input name="name" autoComplete="name" maxLength={100} required value={draft.name} onChange={field} /></label>
-          <label>{t("Email", "البريد الإلكتروني")}<input name="email" type="email" autoComplete="email" maxLength={254} required value={draft.email} onChange={field} /></label>
-        </div>
-        <label>{t("Topic", "الموضوع")}<select name="topic" value={draft.topic} onChange={field}>{topics.map((topic) => <option key={topic} value={topic}>{labels[topic]}</option>)}</select></label>
-        <label>{t("Message", "الرسالة")}<textarea name="message" rows={5} maxLength={3000} required value={draft.message} onChange={field} /></label>
-        <button className="btn btn-blue" type="submit">{t("Save draft", "احفظ المسودة")}</button>
-        {status && <p role="status">{{
-          saved: t("Draft saved in this browser.", "انحفظت المسودة على هالمتصفح."),
-          required: t("Enter your name and message.", "اكتب اسمك ورسالتك."),
-          error: t("The draft couldn’t be saved in this browser.", "تعذّر حفظ المسودة على هالمتصفح."),
-        }[status]}</p>}
-      </form>
-    </div>
-  </main>;
+  return (
+    <main className="company-page">
+      <CompanyHero
+        label={t("Sindibad Support", "دعم سندباد")}
+        title={t("Contact us", "تواصل معنا")}
+        description={t("Questions about a trip or booking? Get in touch with the Sindibad team.", "عندك سؤال عن رحلة أو حجز؟ تواصل مع فريق سندباد.")}
+      />
+      <div className="container company-wrap">
+        <section className="company-contact" aria-labelledby="contact-title">
+          <div className="company-contact-copy">
+            <h2 id="contact-title">{t("Contact details", "معلومات التواصل")}</h2>
+            <dl className="company-contact-methods">
+              {methods.map(({ icon, label, value, href }) => (
+                <div key={href}>
+                  <span className="company-icon" aria-hidden="true">{icon}</span>
+                  <div><dt>{label}</dt><dd>
+                    {contact.isPreview ? <bdi dir="ltr">{value}</bdi> : <a href={href}><bdi dir="ltr">{value}</bdi></a>}
+                  </dd></div>
+                </div>
+              ))}
+            </dl>
+          </div>
+          <div className="company-contact-gallery">
+            <img src="/images/wadirum.jpg" alt={t("Sandstone arch at sunset in Wadi Rum", "قوس صخري وقت الغروب في وادي رم")} />
+            <img src="/images/petra.jpg" alt={t("Petra’s sandstone facade", "واجهة أثرية منحوتة في صخور البتراء")} loading="lazy" />
+            <img src="/images/aqaba.jpg" alt={t("Boats on the Gulf of Aqaba at sunset", "قوارب على خليج العقبة وقت الغروب")} loading="lazy" />
+          </div>
+        </section>
+      </div>
+    </main>
+  );
 }

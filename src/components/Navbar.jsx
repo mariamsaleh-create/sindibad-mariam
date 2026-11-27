@@ -15,18 +15,13 @@ export default function Navbar() {
     },
     {
       id: "tours",
-      to: "/tours",
+      to: "/trips",
       label: isArabic ? "الجولات" : "Tours",
     },
     {
       id: "guides",
-      to: "/trips",
+      to: "/#local-guides",
       label: isArabic ? "المرشدون السياحيون" : "Tour Guides",
-    },
-    {
-      id: "connect",
-      to: "/contact",
-      label: isArabic ? "تواصل معنا" : "Contact Us",
     },
     {
       id: "about",
@@ -56,7 +51,7 @@ export default function Navbar() {
           aria-label={isArabic ? "القائمة الرئيسية" : "Main navigation"}
         >
           {links.map((link) => (
-            <NavLink key={link.id} to={link.to} end={link.to === "/"}>
+            link.id === "guides" ? <Link key={link.id} to={link.to}>{link.label}</Link> : <NavLink key={link.id} to={link.to} end={link.to === "/"}>
               {link.label}
             </NavLink>
           ))}
@@ -67,7 +62,7 @@ export default function Navbar() {
 
           <UserMenu />
 
-          <Link to="/register" className="btn btn-amber">
+          <Link to="/trips" className="btn btn-amber">
             {isArabic ? "ابدأ رحلتك" : "Start Your Journey"}
           </Link>
         </div>

@@ -1,5 +1,6 @@
-export async function getTrips({ signal } = {}) {
-  const response = await fetch("/api/trips", { signal });
+export async function getTrips({ signal, keyword } = {}) {
+  const path = keyword ? `/api/trips/search?${new URLSearchParams({ keyword })}` : "/api/trips";
+  const response = await fetch(path, { signal });
 
   if (!response.ok) {
     throw new Error(`Failed to load trips (${response.status})`);
@@ -15,6 +16,15 @@ export async function getTrips({ signal } = {}) {
 }
 
  
+export async function getTrip(id, { signal } = {}) {
+  const response = await fetch(`/api/trips/${encodeURIComponent(id)}`, { signal });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`Failed to load trip (${response.status})`);
+  const trip = await response.json();
+  if (trip?.tripId == null) throw new Error("Expected trip details");
+  return trip;
+}
+
 // Arabic copy for the seeded demo trip. Other trips use translations from the API when available.
 export function localizeTrip(trip, language) {
   if (!trip || language !== "ar") return trip;

@@ -19,7 +19,8 @@ const content = {
         ],
       },
       {
-        title: "Concierge",
+        title: "Support",
+        contact: true,
         items: [
           "Jordan Pass & Visas",
           "Private Chauffeurs",
@@ -56,7 +57,8 @@ const content = {
         ],
       },
       {
-        title: "خطّط لرحلتك",
+        title: "الدعم",
+        contact: true,
         items: [
           "الأردن باس وتأشيرات الدخول",
           "التنقّل مع سائق خاص",
@@ -79,7 +81,7 @@ const content = {
 };
 
 export default function Footer() {
-  const { language, isArabic } = useSettings();
+  const { language, isArabic, currency, ratesLoading, ratesError } = useSettings();
   const { description, copyright, cols } = content[language];
 
   return (
@@ -109,6 +111,7 @@ export default function Footer() {
               <h4>{column.title}</h4>
 
               <ul>
+                {column.contact && <li><Link className="footer-contact-link" to="/contact">{isArabic ? "تواصل معنا" : "Contact Us"}</Link></li>}
                 {column.items.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
@@ -119,9 +122,15 @@ export default function Footer() {
 
         <div className="copy">
           <p>{copyright}</p>
+          {currency !== "USD" && <div className="footer-rates" role="status">
+            <span>{ratesLoading
+              ? (isArabic ? "جارٍ تحديث أسعار الصرف." : "Updating exchange rates.")
+              : ratesError
+                ? (isArabic ? "تعذّر تحديث أسعار الصرف. راجع رمز العملة بجانب السعر." : "Exchange rates unavailable. Check the currency shown next to each price.")
+                : (isArabic ? "الأسعار المحوّلة تقديرية." : "Converted prices are estimates.")}</span>
+            <a href="https://www.exchangerate-api.com" target="_blank" rel="noreferrer">{isArabic ? "مصدر أسعار الصرف" : "ExchangeRate-API"}</a>
+          </div>}
           <Link to="/about">{isArabic ? "عن سندباد" : "About Sindibad"}</Link>
-          {" · "}
-          <Link to="/contact">{isArabic ? "تواصل معنا" : "Contact Us"}</Link>
         </div>
       </div>
     </footer>

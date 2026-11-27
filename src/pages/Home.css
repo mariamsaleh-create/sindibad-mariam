@@ -432,3 +432,18 @@
   width: auto;
   display: block;
 }
+
+#local-guides { scroll-margin-top: 75px; }
+
+.section.trip-listings-page {
+  min-height: 42vh;
+  padding-block: clamp(32px, 6vw, 72px) 18px;
+}
+.trip-listings-offline { max-width: 560px; }
+.trip-listings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 20px;
+  margin-top: 12px;
+}

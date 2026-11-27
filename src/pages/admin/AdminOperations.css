@@ -20,3 +20,7 @@
 .ad-ops-guide { flex-wrap: wrap; }
 .ad-ops-guide .grow { min-width: min(200px, 100%); }
 .ad-ops-notice, .ad-ops-section [role="alert"] { margin-top: 12px; }
+
+.ad-api-login { max-width: 430px; margin-inline: auto; display: grid; gap: 14px; }
+.ad-api-login label { display: grid; gap: 4px; }
+.ad-kpis .ad-card h2 { font-size: .9rem; }

@@ -323,3 +323,11 @@ html[data-theme="dark"] .logo img.logo-dark {
   max-height: none;
   flex-shrink: 0;
 }
+.footer-rates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-block: 6px;
+  color: var(--muted);
+}
+.footer-rates a { text-decoration: underline; }

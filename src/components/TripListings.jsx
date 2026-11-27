@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useSettings } from "../context/SettingsContext";
 import { categoryLabelsAr } from "../data/homeData";
 import { getTrips, localizeTrip } from "../services/trips";
@@ -15,30 +15,37 @@ const initials = (name) =>
 
 export default function TripListings({ standalone = false }) {
   const { language, isArabic } = useSettings();
+  const [params] = useSearchParams();
+  const keyword = params.get("keyword")?.trim() || "";
+  const date = params.get("date") || "";
+  const travelers = Number(params.get("travelers")) || 0;
+  const amount = new Intl.NumberFormat(isArabic ? "ar-JO" : "en-US");
   const Heading = standalone ? "h1" : "h2";
 
   const [cat, setCat] = useState(null);
-  const [trips, setTrips] = useState([]);
-  const [tripsStatus, setTripsStatus] = useState("loading");
+  const [result, setResult] = useState({ key: null, trips: [], status: "loading" });
   const [attempt, setAttempt] = useState(0);
+
+  const requestKey = `${keyword}:${attempt}`;
+  const { trips, status: tripsStatus } = result.key === requestKey ? result : { trips: [], status: "loading" };
 
   useEffect(() => {
     const controller = new AbortController();
 
-    getTrips({ signal: controller.signal })
+    getTrips({ signal: controller.signal, keyword })
       .then((data) => {
         if (controller.signal.aborted) return;
-        setTrips(data);
-        setTripsStatus("ready");
+        const upcoming = data.filter((trip) => trip.tripStatus === "Upcoming");
+        setResult({ key: requestKey, trips: upcoming, status: "ready" });
       })
       .catch(() => {
         if (!controller.signal.aborted) {
-          setTripsStatus("error");
+          setResult({ key: requestKey, trips: [], status: "error" });
         }
       });
 
     return () => controller.abort();
-  }, [attempt]);
+  }, [requestKey, keyword]);
 
 
   const tripCategories = new Map();
@@ -48,8 +55,10 @@ export default function TripListings({ standalone = false }) {
     }
   }
 
-  const shown =
-    cat === null ? trips : trips.filter((trip) => trip.categoryId === cat);
+  const activeCategory = tripCategories.has(cat) ? cat : null;
+  const shown = trips.filter((trip) => (activeCategory === null || trip.categoryId === activeCategory)
+    && (!date || trip.startDate?.slice(0, 10) === date)
+    && (!travelers || trip.maxParticipants >= travelers));
 
   const dateFormatter = new Intl.DateTimeFormat(isArabic ? "ar-JO" : "en-US", {
     day: "numeric",
@@ -64,7 +73,7 @@ export default function TripListings({ standalone = false }) {
   const text = (ar, en) => (isArabic ? ar : en);
 
   return (
-    <section className="section container">
+    <section className={`section container${standalone ? " trip-listings-page" : ""}`}>
       <div className="sec-head">
         <div>
           <span className="eyebrow">
@@ -85,8 +94,8 @@ export default function TripListings({ standalone = false }) {
           <div className="chips">
             <button
               type="button"
-              className={cat === null ? "chip on" : "chip"}
-              aria-pressed={cat === null}
+              className={activeCategory === null ? "chip on" : "chip"}
+              aria-pressed={activeCategory === null}
               onClick={() => setCat(null)}
             >
               {text("كل الرحلات", "All Trips")}
@@ -95,8 +104,8 @@ export default function TripListings({ standalone = false }) {
               <button
                 type="button"
                 key={id}
-                className={cat === id ? "chip on" : "chip"}
-                aria-pressed={cat === id}
+                className={activeCategory === id ? "chip on" : "chip"}
+                aria-pressed={activeCategory === id}
                 onClick={() => setCat(id)}
               >
                 {isArabic ? categoryLabelsAr[name] || name : name}
@@ -111,23 +120,25 @@ export default function TripListings({ standalone = false }) {
       )}
 
       {tripsStatus === "error" && (
-        <div>
+        <div className="card card-body trip-listings-offline">
           <p role="alert">
             {text(
-              "ما قدرنا نحمّل الرحلات. جرّب مرة ثانية.",
-              "We couldn't load the trips. Please try again.",
+              "الرحلات المباشرة غير متاحة حالياً.",
+              "Live trips are temporarily unavailable.",
             )}
           </p>
+          <div className="trip-listings-actions">
           <button
             type="button"
             className="btn btn-blue"
             onClick={() => {
-              setTripsStatus("loading");
               setAttempt((current) => current + 1);
             }}
           >
             {text("إعادة المحاولة", "Try again")}
           </button>
+          <Link className="link" to="/tours">{text("تصفّح الرحلات التجريبية", "Browse sample tours")}</Link>
+          </div>
         </div>
       )}
 
@@ -148,6 +159,7 @@ export default function TripListings({ standalone = false }) {
                     }}
                   />
                 )}
+                {trip.pricePerPerson != null && <span className="price-tag"><bdi>{amount.format(trip.pricePerPerson)}</bdi> / {text("للشخص", "person")}</span>}
                 {trip.startDate && (
                   <span className="date">
                     {formatTripDate(trip.startDate)}
@@ -158,6 +170,7 @@ export default function TripListings({ standalone = false }) {
 
               <div className="card-body">
                 <h3><bdi>{trip.title}</bdi></h3>
+                {trip.maxParticipants != null && <p className="meta">{text("الحد الأقصى:", "Maximum group size:")} {amount.format(trip.maxParticipants)}</p>}
                 {trip.description && <p><bdi>{trip.description}</bdi></p>}
 
                 <div className="trip-card-footer">
@@ -168,7 +181,7 @@ export default function TripListings({ standalone = false }) {
                     </div>
                   )}
                   <Link
-                    to={`/checkout/${trip.tripId}`}
+                    to={`/trips/${trip.tripId}`}
                     className="trip-summary-link"
                   >
                     {text("عرض ملخّص الرحلة", "View trip summary")}
@@ -186,8 +199,8 @@ export default function TripListings({ standalone = false }) {
                     "No trips are available right now.",
                   )
                 : text(
-                    "ما في رحلات ضمن هذا التصنيف حاليًا.",
-                    "No trips in this category right now.",
+                    "ما في رحلات بتطابق البحث والفلاتر.",
+                    "No trips match your search and filters.",
                   )}
             </p>
           )}
